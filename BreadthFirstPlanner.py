@@ -11,7 +11,7 @@ class BreadthFirstPlanner(object):
         # TODO: Here you will implement the breadth first planner
         #  The return path should be a numpy array
         #  of dimension k x n where k is the number of waypoints
-        #  and n is the dimension of the robots configuration space
+        #  and n is thgit e dimension of the robots configuration space
         q = Queue()
         start_id = self.planning_env.discrete_env.ConfigurationToNodeId(start_config)
         goal_id = self.planning_env.discrete_env.ConfigurationToNodeId(goal_config)
