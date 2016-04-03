@@ -28,7 +28,7 @@ class SimpleEnvironment(object):
         new_coord = [0]*2
         
         coord = self.discrete_env.NodeIdToGridCoord(node_id)
-        steps = [[-1,0],[1,0],[0,-1],[0,1]]
+        steps = [[0,1],[0,-1],[-1,0],[1,0]]
         #print node_id
         #print coord
         #print self.discrete_env.GridCoordToNodeId([-0.05,0.05])
@@ -53,8 +53,8 @@ class SimpleEnvironment(object):
     def ComputeDistance(self, start_id, end_id):
 
         dist = 0
-        start_config = NodeIdToConfiguration(start_id)
-        end_config = NodeIdToConfiguration(end_id)
+        start_config = self.discrete_env.NodeIdToConfiguration(start_id)
+        end_config = self.discrete_env.NodeIdToConfiguration(end_id)
         dist = numpy.linalg.norm(start_config-end_config)
 
         # TODO: Here you will implement a function that 
@@ -66,8 +66,8 @@ class SimpleEnvironment(object):
     def ComputeHeuristicCost(self, start_id, goal_id):
         
         cost = 0
-        start_config = NodeIdToConfiguration(start_id)
-        goal_config = NodeIdToConfiguration(goal_id)
+        start_config = self.discrete_env.NodeIdToConfiguration(start_id)
+        goal_config = self.discrete_env.NodeIdToConfiguration(goal_id)
         cost = numpy.linalg.norm(start_config - goal_config)
         # TODO: Here you will implement a function that 
         # computes the heuristic cost between the configurations

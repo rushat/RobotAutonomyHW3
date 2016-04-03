@@ -37,7 +37,7 @@ class HerbEnvironment(object):
     def GetSuccessors(self, node_id):
 
         successors = []
-
+        
         # TODO: Here you will implement a function that looks
         #  up the configuration associated with the particular node_id
         #  and return a list of node_ids that represent the neighboring
@@ -48,6 +48,9 @@ class HerbEnvironment(object):
     def ComputeDistance(self, start_id, end_id):
 
         dist = 0
+        start_config = self.discrete_env.NodeIdToConfiguration(start_id)
+        end_config = self.discrete_env.NodeIdToConfiguration(end_id)
+        dist = numpy.linalg.norm(start_config-end_config)
 
         # TODO: Here you will implement a function that 
         # computes the distance between the configurations given
@@ -58,6 +61,10 @@ class HerbEnvironment(object):
     def ComputeHeuristicCost(self, start_id, goal_id):
         
         cost = 0
+        start_config = self.discrete_env.NodeIdToConfiguration(start_id)
+        goal_config = self.discrete_env.NodeIdToConfiguration(goal_id)
+        cost = numpy.linalg.norm(start_config - goal_config)
+        
 
         # TODO: Here you will implement a function that 
         # computes the heuristic cost between the configurations
