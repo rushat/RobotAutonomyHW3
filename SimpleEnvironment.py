@@ -35,19 +35,22 @@ class SimpleEnvironment(object):
         #print self.discrete_env.GridCoordToConfiguration(coord)
         for step in steps:
             new_coord = [coord[0] + step[0] ,coord[1] + step[1]]
-            #print new_coord
             new_config = self.discrete_env.GridCoordToConfiguration(new_coord)
-            #print new_config
-            if not new_config > self.upper_limits or new_config < self.lower_limits:
-                if not self.collision_check(self.discrete_env.GridCoordToConfiguration(new_coord)):
-                    successors.append(self.discrete_env.GridCoordToNodeId(new_coord))
+            print new_config
+            flag = True
+            for j in range(len(new_config)):
+                if (new_config[j] > self.upper_limits[j] or new_config[j] < self.lower_limits[j]):
+                    flag = False
+
+            if flag == True and not self.collision_check(self.discrete_env.GridCoordToConfiguration(new_coord)):
+                successors.append(self.discrete_env.GridCoordToNodeId(new_coord))
 
         #print successors
         # TODO: Here you will implement a function that looks
         #  up the configuration associated with the particular node_id
         #  and return a list of node_ids that represent the neighboring
         #  nodes
-        
+        print successors
         return successors
 
     def ComputeDistance(self, start_id, end_id):

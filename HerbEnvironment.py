@@ -1,11 +1,12 @@
 import numpy
 from DiscreteEnvironment import DiscreteEnvironment
-
+import pdb
 class HerbEnvironment(object):
     
     def __init__(self, herb, resolution):
         
         self.robot = herb.robot
+        self.env = self.robot.GetEnv()
         self.lower_limits, self.upper_limits = self.robot.GetActiveDOFLimits()
         self.discrete_env = DiscreteEnvironment(resolution, self.lower_limits, self.upper_limits)
 
@@ -17,15 +18,15 @@ class HerbEnvironment(object):
             self.discrete_env.num_cells[idx] -= 1
 
         # add a table and move the robot into place
-        table = self.robot.GetEnv().ReadKinBodyXMLFile('models/objects/table.kinbody.xml')
+        self.table = self.robot.GetEnv().ReadKinBodyXMLFile('models/objects/table.kinbody.xml')
         
-        self.robot.GetEnv().Add(table)
+        self.robot.GetEnv().Add(self.table)
 
         table_pose = numpy.array([[ 0, 0, -1, 0.7], 
                                   [-1, 0,  0, 0], 
                                   [ 0, 1,  0, 0], 
                                   [ 0, 0,  0, 1]])
-        table.SetTransform(table_pose)
+        self.table.SetTransform(table_pose)
         
         # set the camera
         camera_pose = numpy.array([[ 0.3259757 ,  0.31990565, -0.88960678,  2.84039211],
@@ -37,7 +38,41 @@ class HerbEnvironment(object):
     def GetSuccessors(self, node_id):
 
         successors = []
+        coord = [0]*len(self.discrete_env.NodeIdToGridCoord(node_id))
+        new_coord = [0]*len(self.discrete_env.NodeIdToGridCoord(node_id))
         
+        coord = self.discrete_env.NodeIdToGridCoord(node_id)
+        #print coord
+        #steps = []
+        #steps = [[1,0,0,0,0,0,0],[0,1,0,0,0,0,0],[0,0,1,0,0,0,0],[0,0,0,1,0,0,0],[0,0,0,0,1,0,0],[0,0,0,0,0,1,0],[0,0,0,0,0,0,1],[-1,0,0,0,0,0,0],[0,-1,0,0,0,0,0],[0,0,-1,0,0,0,0],[0,0,0,-1,0,0,0],[0,0,0,0,-1,0,0],[0,0,0,0,0,-1,0],[0,0,0,0,0,0,-1]]
+        for i in range(7):
+            new_coord = coord
+            new_coord[i] = coord[i]+1
+
+            new_config = self.discrete_env.GridCoordToConfiguration(new_coord)
+            
+            flag = True
+            for j in range(len(new_config)):
+                if (new_config[j] > self.upper_limits[j] or new_config[j] < self.lower_limits[j]):
+                    flag = False
+
+            if flag == True and not self.collision_check(self.discrete_env.GridCoordToConfiguration(new_coord)):
+                successors.append(self.discrete_env.GridCoordToNodeId(new_coord))        
+
+        for i in range(7):
+            new_coord = coord
+            new_coord[i] = coord[i]-1
+
+            new_config = self.discrete_env.GridCoordToConfiguration(new_coord)
+            
+            flag = True
+            for j in range(len(new_config)):
+                if (new_config[j] > self.upper_limits[j] or new_config[j] < self.lower_limits[j]):
+                    flag = False
+
+            if flag == True and not self.collision_check(self.discrete_env.GridCoordToConfiguration(new_coord)):
+                successors.append(self.discrete_env.GridCoordToNodeId(new_coord))        
+
         # TODO: Here you will implement a function that looks
         #  up the configuration associated with the particular node_id
         #  and return a list of node_ids that represent the neighboring
@@ -72,3 +107,14 @@ class HerbEnvironment(object):
         
         return cost
 
+    def collision_check(self, config):
+
+        self.robot.SetDOFValues(config,self.robot.GetActiveDOFIndices(),checklimits=1)
+
+        selfC = self.robot.CheckSelfCollision()
+        env = self.robot.GetEnv()
+        envC = env.CheckCollision(self.robot,self.table)
+        if ((selfC) or (envC)):
+            return True
+        else:
+            return False 

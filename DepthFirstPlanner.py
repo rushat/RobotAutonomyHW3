@@ -13,7 +13,6 @@ class DepthFirstPlanner(object):
         #  The return path should be a numpy array
         #  of dimension k x n where k is the number of waypoints
         #  and n is the dimension of the robots configuration space
-        '''
         q = LifoQueue()
         start_id = self.planning_env.discrete_env.ConfigurationToNodeId(start_config)
         goal_id = self.planning_env.discrete_env.ConfigurationToNodeId(goal_config)
@@ -23,7 +22,7 @@ class DepthFirstPlanner(object):
         backtrack = {}
         backtrack[start_id] = None
         while (q.qsize()>0) and not found:
-            current = q.get()                
+            current = q.get()          
             successors = self.planning_env.GetSuccessors(current)
             for successor in successors:
                 if not successor in explored:
@@ -42,5 +41,4 @@ class DepthFirstPlanner(object):
             element = backtrack[element]
         plan = path[::-1]
         print plan
-        '''
         return plan
