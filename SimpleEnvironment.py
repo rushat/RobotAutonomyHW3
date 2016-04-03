@@ -6,34 +6,43 @@ class SimpleEnvironment(object):
     
     def __init__(self, herb, resolution):
         self.robot = herb.robot
+        self.env = self.robot.GetEnv()
         self.lower_limits = [-5., -5.]
         self.upper_limits = [5., 5.]
         self.discrete_env = DiscreteEnvironment(resolution, self.lower_limits, self.upper_limits)
 
         # add an obstacle
-        table = self.robot.GetEnv().ReadKinBodyXMLFile('models/objects/table.kinbody.xml')
-        self.robot.GetEnv().Add(table)
+        self.table = self.robot.GetEnv().ReadKinBodyXMLFile('models/objects/table.kinbody.xml')
+        self.robot.GetEnv().Add(self.table)
 
         table_pose = numpy.array([[ 0, 0, -1, 1.5], 
                                   [-1, 0,  0, 0], 
                                   [ 0, 1,  0, 0], 
                                   [ 0, 0,  0, 1]])
-        table.SetTransform(table_pose)
+        self.table.SetTransform(table_pose)
 
     def GetSuccessors(self, node_id):
 
         successors = []
         coord = [0]*2
         new_coord = [0]*2
-        coord = NodeIdToGridCoord(node_id)
-        steps = [(-1,0),(1,0),(0,-1),(0,1)]
+        
+        coord = self.discrete_env.NodeIdToGridCoord(node_id)
+        steps = [[-1,0],[1,0],[0,-1],[0,1]]
+        #print node_id
+        #print coord
+        #print self.discrete_env.GridCoordToNodeId([-0.05,0.05])
+        #print self.discrete_env.GridCoordToConfiguration(coord)
         for step in steps:
-            new_coord = coord
-            new_coord = coord + step
-            if not collision_check(GridCoordToConfiguration(new_coord)
-                successors.append(GridCoordToNodeId(new_coord))
+            new_coord = [coord[0] + step[0] ,coord[1] + step[1]]
+            #print new_coord
+            new_config = self.discrete_env.GridCoordToConfiguration(new_coord)
+            #print new_config
+            if not new_config > self.upper_limits or new_config < self.lower_limits:
+                if not self.collision_check(self.discrete_env.GridCoordToConfiguration(new_coord)):
+                    successors.append(self.discrete_env.GridCoordToNodeId(new_coord))
 
-
+        #print successors
         # TODO: Here you will implement a function that looks
         #  up the configuration associated with the particular node_id
         #  and return a list of node_ids that represent the neighboring
@@ -107,4 +116,4 @@ class SimpleEnvironment(object):
         
         self.robot.SetTransform(robot_pose)
 
-        return self.env.CheckCollision(self.robot,table)
+        return self.env.CheckCollision(self.robot,self.table)

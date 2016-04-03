@@ -26,11 +26,9 @@ class DiscreteEnvironment(object):
         # This function maps a node configuration in full configuration
         # space to a node in discrete space
         #
-
-
         coord = [0]*self.dimension
-        coord = ConfigurationToGridCoord(config)
-        node_id = GridCoordToNodeId(coord)
+        coord = self.ConfigurationToGridCoord(config)
+        node_id = self.GridCoordToNodeId(coord)
         return node_id
 
     def NodeIdToConfiguration(self, nid):
@@ -41,11 +39,11 @@ class DiscreteEnvironment(object):
         #
         config = [0] * self.dimension
         coord = [0]*self.dimension
-        coord = NodeIdToGridCoord(nid)
-        config = GridCoordToConfiguration(coord)
+        coord = self.NodeIdToGridCoord(nid)
+        config = self.GridCoordToConfiguration(coord)
         return config
         
-    def ConfigurationToGridCoord(self, config):
+    def ConfigurationToGridCoord(self, config): #DONE
         
         # TODO:
         # This function maps a configuration in the full configuration space
@@ -53,11 +51,11 @@ class DiscreteEnvironment(object):
         #
         coord = [0] * self.dimension
        	for i in range(self.dimension):
-       		coord[i] = int(config[i]/self.resolution)
+       		l = int((config[i]-self.lower_limits[i])/self.resolution)
+       		coord[i] = l
+       	return coord
 
-        return coord
-
-    def GridCoordToConfiguration(self, coord):
+    def GridCoordToConfiguration(self, coord): #Done
         
         # TODO:
         # This function smaps a grid coordinate in discrete space
@@ -65,7 +63,7 @@ class DiscreteEnvironment(object):
         #
         config = [0] * self.dimension
         for i in range(self.dimension):
-       		config[i] = coord[i]*self.resolution + 0.5*self.resolution
+       		config[i] = coord[i]*self.resolution + 0.5*self.resolution + self.lower_limits[i]
 
         return config
 
@@ -80,7 +78,7 @@ class DiscreteEnvironment(object):
         	for j in range(self.dimension - i-1):
         		mul = mul*self.num_cells[j]
         	node_id = node_id + coord[self.dimension - i-1]*mul
-        	
+        	node_id = int(node_id)
 
         return node_id
 
@@ -95,8 +93,9 @@ class DiscreteEnvironment(object):
         	div = 1
         	for j in range(self.dimension - i-1):
         		div = div*self.num_cells[j]
+        	l = (int)(newnode/div)
 
-        	coord[self.dimension - i-1] = int(newnode/div)
+        	coord[self.dimension - i-1] = l 
         	newnode =  newnode%div
 
         return coord
