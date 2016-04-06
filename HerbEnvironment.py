@@ -1,6 +1,5 @@
 import numpy
 from DiscreteEnvironment import DiscreteEnvironment
-import pdb
 class HerbEnvironment(object):
     
     def __init__(self, herb, resolution):
@@ -38,17 +37,15 @@ class HerbEnvironment(object):
     def GetSuccessors(self, node_id):
 
         successors = []
-        coord = [0]*len(self.discrete_env.NodeIdToGridCoord(node_id))
-        new_coord = [0]*len(self.discrete_env.NodeIdToGridCoord(node_id))
+        coord = [0]*self.discrete_env.dimension
+        new_coord = [0]*self.discrete_env.dimension
         
         coord = self.discrete_env.NodeIdToGridCoord(node_id)
-        #print coord
-        #steps = []
-        #steps = [[1,0,0,0,0,0,0],[0,1,0,0,0,0,0],[0,0,1,0,0,0,0],[0,0,0,1,0,0,0],[0,0,0,0,1,0,0],[0,0,0,0,0,1,0],[0,0,0,0,0,0,1],[-1,0,0,0,0,0,0],[0,-1,0,0,0,0,0],[0,0,-1,0,0,0,0],[0,0,0,-1,0,0,0],[0,0,0,0,-1,0,0],[0,0,0,0,0,-1,0],[0,0,0,0,0,0,-1]]
-        for i in range(7):
-            new_coord = coord
-            new_coord[i] = coord[i]+1
-
+        
+        for i in range(self.discrete_env.dimension):
+            
+            new_coord = list(coord)
+            new_coord[i] = coord[i]-1
             new_config = self.discrete_env.GridCoordToConfiguration(new_coord)
             
             flag = True
@@ -59,9 +56,9 @@ class HerbEnvironment(object):
             if flag == True and not self.collision_check(self.discrete_env.GridCoordToConfiguration(new_coord)):
                 successors.append(self.discrete_env.GridCoordToNodeId(new_coord))        
 
-        for i in range(7):
-            new_coord = coord
-            new_coord[i] = coord[i]-1
+        for i in range(self.discrete_env.dimension):
+            new_coord = list(coord)
+            new_coord[i] = coord[i]+1
 
             new_config = self.discrete_env.GridCoordToConfiguration(new_coord)
             
@@ -79,7 +76,6 @@ class HerbEnvironment(object):
         #  nodes
         
         return successors
-
     def ComputeDistance(self, start_id, end_id):
 
         dist = 0

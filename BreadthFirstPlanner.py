@@ -23,7 +23,6 @@ class BreadthFirstPlanner(object):
         while (q.qsize()>0) and not found:
             current = q.get()                
             successors = self.planning_env.GetSuccessors(current)
-            print current
             for successor in successors:
                 if not successor in explored:
                     q.put(successor)

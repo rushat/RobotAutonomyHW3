@@ -1,6 +1,7 @@
 import numpy
 import pylab as pl
 from DiscreteEnvironment import DiscreteEnvironment
+import pdb
 
 class SimpleEnvironment(object):
     
@@ -24,41 +25,52 @@ class SimpleEnvironment(object):
     def GetSuccessors(self, node_id):
 
         successors = []
-        coord = [0]*2
-        new_coord = [0]*2
+        coord = [0]*self.discrete_env.dimension
+        new_coord = [0]*self.discrete_env.dimension
         
         coord = self.discrete_env.NodeIdToGridCoord(node_id)
-        steps = [[0,1],[0,-1],[-1,0],[1,0]]
-        #print node_id
-        #print coord
-        #print self.discrete_env.GridCoordToNodeId([-0.05,0.05])
-        #print self.discrete_env.GridCoordToConfiguration(coord)
-        for step in steps:
-            new_coord = [coord[0] + step[0] ,coord[1] + step[1]]
+        
+        for i in range(self.discrete_env.dimension):
+            
+            new_coord = list(coord)
+            new_coord[i] = coord[i]-1
             new_config = self.discrete_env.GridCoordToConfiguration(new_coord)
-            print new_config
+            
             flag = True
             for j in range(len(new_config)):
                 if (new_config[j] > self.upper_limits[j] or new_config[j] < self.lower_limits[j]):
                     flag = False
 
             if flag == True and not self.collision_check(self.discrete_env.GridCoordToConfiguration(new_coord)):
-                successors.append(self.discrete_env.GridCoordToNodeId(new_coord))
+                successors.append(self.discrete_env.GridCoordToNodeId(new_coord))        
 
-        #print successors
+        for i in range(self.discrete_env.dimension):
+            new_coord = list(coord)
+            new_coord[i] = coord[i]+1
+
+            new_config = self.discrete_env.GridCoordToConfiguration(new_coord)
+            
+            flag = True
+            for j in range(len(new_config)):
+                if (new_config[j] > self.upper_limits[j] or new_config[j] < self.lower_limits[j]):
+                    flag = False
+
+            if flag == True and not self.collision_check(self.discrete_env.GridCoordToConfiguration(new_coord)):
+                successors.append(self.discrete_env.GridCoordToNodeId(new_coord))        
+
         # TODO: Here you will implement a function that looks
         #  up the configuration associated with the particular node_id
         #  and return a list of node_ids that represent the neighboring
         #  nodes
-        print successors
+        
         return successors
-
     def ComputeDistance(self, start_id, end_id):
 
         dist = 0
         start_config = self.discrete_env.NodeIdToConfiguration(start_id)
         end_config = self.discrete_env.NodeIdToConfiguration(end_id)
-        dist = numpy.linalg.norm(start_config-end_config)
+
+        dist = numpy.linalg.norm(numpy.array(start_config) - numpy.array(end_config))
 
         # TODO: Here you will implement a function that 
         # computes the distance between the configurations given
@@ -71,7 +83,7 @@ class SimpleEnvironment(object):
         cost = 0
         start_config = self.discrete_env.NodeIdToConfiguration(start_id)
         goal_config = self.discrete_env.NodeIdToConfiguration(goal_id)
-        cost = numpy.linalg.norm(start_config - goal_config)
+        cost = numpy.linalg.norm(numpy.array(start_config) - numpy.array(goal_config))
         # TODO: Here you will implement a function that 
         # computes the heuristic cost between the configurations
         # given by the two node ids

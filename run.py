@@ -38,7 +38,7 @@ if __name__ == "__main__":
                         help='The planner to run (astar, bfs, dfs or hrrt)')
     parser.add_argument('-v', '--visualize', action='store_true',
                         help='Enable visualization of tree growth (only applicable for simple robot)')
-    parser.add_argument('--resolution', type=float, default=0.1,
+    parser.add_argument('--resolution', type=float, default=0.25,
                         help='Set the resolution of the grid (default: 0.1)')
     parser.add_argument('-d', '--debug', action='store_true',
                         help='Enable debug logging')
