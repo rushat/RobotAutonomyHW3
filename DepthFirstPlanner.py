@@ -30,10 +30,10 @@ class DepthFirstPlanner(object):
             current = q.get()          
             successors = self.planning_env.GetSuccessors(current)
             for successor in successors:
-                if not successor in explored:
+                if not successor in backtrack:
                     n = n+1
                     q.put(successor)
-                    explored.append(successor)
+                    #explored.append(successor)
                     backtrack[successor] = current
                     if self.visualize: 
                         s = self.planning_env.discrete_env.NodeIdToConfiguration(successor)

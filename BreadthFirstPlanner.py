@@ -29,10 +29,10 @@ class BreadthFirstPlanner(object):
             current = q.get()                
             successors = self.planning_env.GetSuccessors(current)
             for successor in successors:
-                if not successor in explored:
+                if not successor in backtrack:
                     q.put(successor)
                     n=n+1
-                    explored.append(successor)
+                    #explored.append(successor)
                     backtrack[successor] = current
                     if self.visualize: 
                         s = self.planning_env.discrete_env.NodeIdToConfiguration(successor)
@@ -59,7 +59,6 @@ class BreadthFirstPlanner(object):
         path_length = 0
         for i in range(len(path) - 1):
             path_length = path_length + self.planning_env.ComputeDistance(self.planning_env.discrete_env.ConfigurationToNodeId(path[i]), self.planning_env.discrete_env.ConfigurationToNodeId(path[i+1]))
-            
         print "path path_length"
         print path_length
         return plan
