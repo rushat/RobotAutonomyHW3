@@ -1,0 +1,92 @@
+import time
+import numpy
+class AStarPlanner(object):
+    
+    def __init__(self, planning_env, visualize):
+        self.planning_env = planning_env
+        self.visualize = visualize
+        self.nodes = dict()
+
+
+        # TODO: Here you will implement the AStar planner
+        #  The return path should be a numpy array
+        #  of dimension k x n where k is the number of waypoints
+        #  and n is the dimension of the robots configuration space
+    def Plan(self, start_config, goal_config):
+        debug = False
+        plan = []
+
+        open = {}
+        closed = {}
+        predecessors = {}
+        start = self.planning_env.discrete_env.ConfigurationToNodeId(start_config)
+        goal = self.planning_env.discrete_env.ConfigurationToNodeId(goal_config)
+
+        open[start]=0
+        if debug: print ("start: " + str(start))
+        if debug: print ("goal: " + str(goal))
+
+        while len(open.keys()) > 0:
+            # find node with lowest score
+            current = min(open, key = open.get)
+
+            # algorithm is complete
+            if current == goal:
+                if debug: print "current is goal"
+                nodePath = planPath(predecessors, goal, debug)
+                break
+            else:
+                if debug: print "current not goal"
+                closed[current] = open[current]
+                del open[current]
+
+                neighbors = self.planning_env.GetSuccessors(current)
+                if debug: print ("neighbors: " + str(neighbors))
+                for neighNode in neighbors:
+                    if neighNode in closed:
+                        if debug: print "neighbor in closed"
+                    else:
+                        if debug: print "neighbor not in closed"
+                        neighG = closed[current] + self.planning_env.ComputeDistance(current, neighNode)
+                        neighH = self.planning_env.ComputeDistance(neighNode, goal)
+                        neighF = neighG + neighH
+                        # new node to add
+                        if not neighNode in open:
+                            if debug: print "this is a new node"
+                            open[neighNode] = neighF
+                            if debug: print "updating predecessors and open"
+                            predecessors[neighNode] = current
+                            open[neighNode] = neighF
+                        # only use if path is efficient
+                        elif open[neighNode] > neighF:
+                            if debug: print "this path is efficient"
+                            # update
+                            if debug: print "updating predecessors and open"
+                            predecessors[neighNode] = current
+                            open[neighNode] = neighF
+                        else:
+                            if debug: print "this path is inefficient"
+
+
+        plan.append(start_config)
+
+        # nodePath starts at goal and ends at second from start
+        # adds these as configs in correct order to plan
+        for node in nodePath:
+            plan.insert(1,self.planning_env.discrete_env.NodeIdToConfiguration(node))
+
+        plan.append(goal_config)
+
+        return plan
+
+
+def planPath(predecessors, goal, debug):
+    if debug: print ("predecessors: " + str(predecessors))
+    path = []
+    path.append(goal)
+    while goal in predecessors.keys():
+        goal = predecessors[goal]
+        path.append(goal)
+        if debug: print ("path: " + str(path))
+        if debug: time.sleep(1)
+    return path

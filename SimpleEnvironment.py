@@ -95,7 +95,7 @@ class SimpleEnvironment(object):
         pl.xlim([self.lower_limits[0], self.upper_limits[0]])
         pl.ylim([self.lower_limits[1], self.upper_limits[1]])
         pl.plot(goal_config[0], goal_config[1], 'gx')
-
+        print "InitializePlot"
         # Show all obstacles in environment
         for b in self.robot.GetEnv().GetBodies():
             if b.GetName() == self.robot.GetName():
