@@ -1,4 +1,5 @@
 from Queue import LifoQueue
+import time
 class DepthFirstPlanner(object):
     
     def __init__(self, planning_env, visualize):
@@ -7,6 +8,7 @@ class DepthFirstPlanner(object):
         self.nodes = dict()
 
     def Plan(self, start_config, goal_config):
+        start_time = time.time()
         if self.visualize and hasattr(self.planning_env, "InitializePlot"):
             self.planning_env.InitializePlot(goal_config)
 
@@ -23,11 +25,13 @@ class DepthFirstPlanner(object):
         explored =[start_id]
         backtrack = {}
         backtrack[start_id] = None
+        n= 0
         while (q.qsize()>0) and not found:
             current = q.get()          
             successors = self.planning_env.GetSuccessors(current)
             for successor in successors:
                 if not successor in explored:
+                    n = n+1
                     q.put(successor)
                     explored.append(successor)
                     backtrack[successor] = current
@@ -46,9 +50,18 @@ class DepthFirstPlanner(object):
             path.append(self.planning_env.discrete_env.NodeIdToConfiguration(element))
             element = backtrack[element]
         plan = path[::-1]
+
         if self.visualize: 
             for i in range(len(path) - 1):
                 self.planning_env.PlotRedEdge(path[i],path[i+1])
-        
-        print plan
+        print "number of nodes"
+        print n
+        print "time (in seconds):" 
+        print time.time()- start_time
+        path_length = 0
+        for i in range(len(path) - 1):
+            path_length = path_length + self.planning_env.ComputeDistance(self.planning_env.discrete_env.ConfigurationToNodeId(path[i]), self.planning_env.discrete_env.ConfigurationToNodeId(path[i+1]))
+            
+        print "path path_length"
+        print path_length
         return plan
