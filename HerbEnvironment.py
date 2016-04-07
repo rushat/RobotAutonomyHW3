@@ -94,7 +94,10 @@ class HerbEnvironment(object):
         cost = 0
         start_config = self.discrete_env.NodeIdToConfiguration(start_id)
         goal_config = self.discrete_env.NodeIdToConfiguration(goal_id)
-        cost = numpy.linalg.norm(numpy.array(start_config) - numpy.array(goal_config))
+        
+        weights = numpy.array([4.,4.,4.,4.,1.,1.,1.])
+
+        cost = numpy.linalg.norm(numpy.multiply((numpy.array(start_config) - numpy.array(goal_config)),weights))
         
 
         # TODO: Here you will implement a function that 
