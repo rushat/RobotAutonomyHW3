@@ -69,7 +69,12 @@ class AStarPlanner(object):
         while element is not None:
             path.append(self.planning_env.discrete_env.NodeIdToConfiguration(element))
             element = backpointer[element]
+        
 
+        if self.visualize: 
+            for i in range(len(path) - 1):
+                self.planning_env.PlotRedEdge(path[i],path[i+1])    
+            
         plan = path[::-1]
         print "number of nodes"
         print n
