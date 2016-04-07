@@ -6,7 +6,9 @@ class BreadthFirstPlanner(object):
         self.visualize = visualize
         
     def Plan(self, start_config, goal_config):
-        
+        if self.visualize and hasattr(self.planning_env, "InitializePlot"):
+            self.planning_env.InitializePlot(goal_config)
+
         plan = []
         # TODO: Here you will implement the breadth first planner
         #  The return path should be a numpy array
@@ -28,6 +30,10 @@ class BreadthFirstPlanner(object):
                     q.put(successor)
                     explored.append(successor)
                     backtrack[successor] = current
+                    if self.visualize: 
+                        s = self.planning_env.discrete_env.NodeIdToConfiguration(successor)
+                        c = self.planning_env.discrete_env.NodeIdToConfiguration(current)
+                        self.planning_env.PlotEdge(c,s)
                     if successor == goal_id:
                         found = True
                         break
@@ -35,9 +41,13 @@ class BreadthFirstPlanner(object):
         path = []
         path.append(self.planning_env.discrete_env.NodeIdToConfiguration(goal_id))
         element = backtrack[goal_id]
+
         while element is not None:
             path.append(self.planning_env.discrete_env.NodeIdToConfiguration(element))
             element = backtrack[element]
         plan = path[::-1]
+        if self.visualize: 
+            for i in range(len(path) - 1):
+                self.planning_env.PlotRedEdge(path[i],path[i+1])
         print plan
         return plan
