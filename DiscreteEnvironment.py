@@ -50,8 +50,8 @@ class DiscreteEnvironment(object):
         # to a grid coordinate in discrete space
         #
         coord = [0] * self.dimension
-        coord = numpy.floor((numpy.array(config) - numpy.array(self.lower_limits))/self.resolution)
-        return coord
+       	coord = numpy.floor((config - self.lower_limits)/self.resolution)
+       	return coord
 
     def GridCoordToConfiguration(self, coord): #Done
         
@@ -90,7 +90,7 @@ class DiscreteEnvironment(object):
         	div = 1
         	for j in range(self.dimension - i-1):
         		div = div*self.num_cells[j]
-        	l = (int)(newnode/div)
+        	l = int(newnode/div)
 
         	coord[self.dimension - i-1] = l 
         	newnode =  newnode%div

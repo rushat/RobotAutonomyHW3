@@ -1,10 +1,8 @@
 import numpy
 import pylab as pl
-import random
-import time
 from DiscreteEnvironment import DiscreteEnvironment
-
 import pdb
+import time
 
 class SimpleEnvironment(object):
     
@@ -27,7 +25,7 @@ class SimpleEnvironment(object):
 
     def GetSuccessors(self, node_id):
 
-    	# - ----------------------4 CONNECTED VERSION ------------------------
+        # - ----------------------4 CONNECTED VERSION ------------------------
         # successors = []
         # coord = [0]*self.discrete_env.dimension
         # new_coord = [0]*self.discrete_env.dimension
@@ -165,92 +163,99 @@ class SimpleEnvironment(object):
                 'r.-', linewidth=2.5)
         pl.draw()
 
-    def PlotCyanEdge(self, sconfig, econfig):
-        pl.plot([sconfig[0], econfig[0]],
-                [sconfig[1], econfig[1]],
-                'c.-', linewidth=2.5)
-        pl.draw()
-
     def collision_check(self, config):
 
-        robot_pose = numpy.array([[ 1, 0,  0, config[0]],
-                                    [ 0, 1,  0, config[1]],
-                                    [ 0, 0,  1, 0],
+        robot_pose = numpy.array([[ 1, 0,  0, config[0]], 
+                                    [ 0, 1,  0, config[1]], 
+                                    [ 0, 0,  1, 0], 
                                     [ 0, 0,  0, 1]])
-
+        
         self.robot.SetTransform(robot_pose)
 
         return self.env.CheckCollision(self.robot,self.table)
 
 
-
-    def Extend(self, start_node, end_node):
-
-        numPartitions = 1000
-
-        start_config = self.discrete_env.NodeIdToConfiguration(start_node)
-        end_config = self.discrete_env.NodeIdToConfiguration(end_node)
-
-        x = start_config[0]
-        y = start_config[1]
-
-        deltaX = (end_config[0]-x)/numPartitions
-        deltaY = (end_config[1]-y)/numPartitions
-
-
-        tempTrans = self.robot.GetTransform()
-
-        for i in range(1,numPartitions):
-            x += deltaX
-            y += deltaY
-            #print i
-            self.robot.SetTransform(numpy.array([[1, 0, 0, x],
-                                              [0, 1, 0, y],
-                                              [0, 0, 1, 0],
-                                              [0, 0, 0, 1]]))
-            if self.robot.GetEnv().CheckCollision(self.robot, self.table) == True:
-                x -= deltaX
-                y -= deltaY
-                i = numPartitions+1
-                if (x == start_config[0]) & (y == start_config[1]):
-                    return None
-                else:
-                    return self.discrete_env.ConfigurationToNodeId([x, y])
-
-        end_node = self.discrete_env.ConfigurationToNodeId(end_config)
-        return end_node
-
-
-    def GenerateRandomNode(self):
-        config = [0] * 2
-
+    def Extend(self, start_config, end_config):
+        
         #
-        # TODO: Generate and return a random configuration
+        # TODO: Implement a function which attempts to extend from 
+        #   a start configuration to a goal configuration
         #
+        increment_length = 0.01
+        step_size = 2
+        current_position = numpy.array([0,0])
+        dist = self.ComputeDistanceRRT(start_config,end_config)
+        unit_vector = (end_config - start_config)/dist
+        increment_dist = unit_vector*increment_length
+        interpolate_num = int(dist/increment_length)
+        for i in range(interpolate_num):
+            current_position = start_config + increment_dist*(i+1)
+            robot_pose = numpy.array([[ 1, 0,  0, current_position[0]], 
+                                  [ 0, 1,  0, current_position[1]], 
+                                  [ 0, 0,  1, 0], 
+                                  [ 0, 0,  0, 1]])
+            self.robot.SetTransform(robot_pose)
+            if self.env.CheckCollision(self.robot):
+                #One can either move until obstacle (CONNECT), or just discard it (EXTEND)
+                #return current_position - increment_dist
+                return None
+        
+        #if numpy.linalg.norm(current_position - start_config)> step_size:
+        #    return start_config + step_size*unit_vector
+        #else:
+        return end_config
 
-        found = False
+    def SetGoalParameters(self, goal_config, p = 0.2):
+        self.goal_config = goal_config
+        self.p = p
+        
+    def GenerateRandomConfiguration(self):
+        config = [0] * 2;
+        lower_limits = self.upper_limits
+        upper_limits = self.lower_limits
+        original_pose = self.robot.GetTransform()
+        gen_random_config_flag = True
+        
+        while gen_random_config_flag == True:
+            config = numpy.random.uniform(lower_limits, upper_limits,2)
+            #print "Config 0: " + str(config[0]) + " Config 1: " + str(config[1])
+            robot_pose = numpy.array([[ 1, 0,  0, config[0]], 
+                                    [ 0, 1,  0, config[1]], 
+                                    [ 0, 0,  1, 0], 
+                                    [ 0, 0,  0, 1]])
 
-        while found == False:
-                x = round(random.uniform(self.lower_limits[0], self.upper_limits[0]),3)
-                y = round(random.uniform(self.lower_limits[1], self.upper_limits[1]),3)
-                tempTrans = self.robot.GetTransform()
-                self.robot.SetTransform(numpy.array([[1, 0, 0, x],
-                                                  [0, 1, 0, y],
-                                                  [0, 0, 1, 0],
-                                                  [0, 0, 0, 1]]))
-                if self.robot.GetEnv().CheckCollision(self.robot, self.table) == False:
-                    found = True
-                    config = [x,y]
-                self.robot.SetTransform(tempTrans)
+            self.robot.SetTransform(robot_pose)
+            if self.env.CheckCollision(self.robot) == False:
+                gen_random_config_flag = False
+        self.robot.SetTransform(original_pose)
+        return config
 
-        return self.discrete_env.ConfigurationToNodeId(numpy.array(config))
+    def ComputeDistanceRRT(self, start_config, end_config):
+        #
+        # TODO: Implement a function which computes the distance between
+        # two configurations
+        #
+        dist = numpy.linalg.norm(start_config-end_config)
+        return dist
 
+    def ComputeHeuristicCostRRT(self, start_config, goal_config):
+        
+        cost = 0
+        cost = numpy.linalg.norm(numpy.array(start_config) - numpy.array(goal_config))
+        # TODO: Here you will implement a function that 
+        # computes the heuristic cost between the configurations
+        # given by the two node ids
 
-    def ShortenPath(self, path, timeout=5.0):
-        print "shortening path"
+        return cost
+    def ShortenPath(self, path, timeout=15.0):
 
+    # TODO: Implement a function which performs path shortening
+    #  on the given path.  Terminate the shortening after the 
+    #  given timout (in seconds).
+    #
+    #pdb.set_trace()
         start = time.time()
-        while (time.time()-start)<5:
+        while (time.time()-start)<15:
             increment_length = 0.1
             goal_config = path[-1]
             l = len(path)
@@ -258,15 +263,15 @@ class SimpleEnvironment(object):
             new_path.append(path[0])
             for i in range(l):
                 end_config = path[i+1]
-                start_config = path[i]
-                dist = self.ComputeDistance(self.discrete_env.ConfigurationToNodeId(start_config),self.discrete_env.ConfigurationToNodeId(end_config))
+                start_config = path[i] 
+                dist = self.ComputeDistanceRRT(start_config,end_config)
                 unit_vector = (end_config - start_config)/dist
                 increment_dist = unit_vector*increment_length
                 interpolate_num = int(dist/increment_length)
                 new_path.append(path[i])
                 for j in range(interpolate_num):
                     current_position = start_config + increment_dist*(j+1)
-                    check = self.Extend(self.discrete_env.ConfigurationToNodeId(current_position),self.discrete_env.ConfigurationToNodeId(goal_config))
+                    check = self.Extend(current_position,goal_config)
                     if check != None:
                         new_path.append(current_position)
                         new_path.append(goal_config)
@@ -274,25 +279,5 @@ class SimpleEnvironment(object):
                 else:
                     continue
                 break
-            dist = []
-            for i in range(len(new_path)-1):
-                dist.append(self.ComputeDistance(self.discrete_env.ConfigurationToNodeId(new_path[i]),self.discrete_env.ConfigurationToNodeId(new_path[i+1])))
-                self.PlotCyanEdge(new_path[i],new_path[i+1])
-            print("shortened distance: " + str(sum(dist)))
-            print("time to shorten: " + str(time.time() - start))
-            print("new number of vertices: " + str(len(path)))
             return new_path
-
-        dist = []
-        for i in range(len(path)-1):
-            dist.append(self.ComputeDistance(self.discrete_env.ConfigurationToNodeId(path[i]),self.discrete_env.ConfigurationToNodeId(path[i+1])))
-            self.PlotCyanEdge(path[i],path[i+1])
-        print("shortened distance: " + str(sum(dist)))
-        print("time to shorten: " + str(time.time() - start))
-        print("new number of vertices: " + str(len(path)))
-        return path
-
-
-
-
         return path

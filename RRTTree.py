@@ -16,7 +16,7 @@ class RRTTree(object):
         
         dists = []
         for v in self.vertices:
-            dists.append(self.planning_env.ComputeDistance(config, v))
+            dists.append(self.planning_env.ComputeDistanceRRT(config, v))
 
         vid, vdist = min(enumerate(dists), key=operator.itemgetter(1))
 
@@ -30,4 +30,3 @@ class RRTTree(object):
 
     def AddEdge(self, sid, eid):
         self.edges[eid] = sid
-
