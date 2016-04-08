@@ -10,6 +10,7 @@ from SimpleEnvironment import SimpleEnvironment
 from AStarPlanner import AStarPlanner
 from DepthFirstPlanner import DepthFirstPlanner
 from BreadthFirstPlanner import BreadthFirstPlanner
+from RRTPlanner import RRTPlanner
 from HeuristicRRTPlanner import HeuristicRRTPlanner
 
 def main(robot, planning_env, planner):
@@ -76,6 +77,8 @@ if __name__ == "__main__":
         planner = BreadthFirstPlanner(planning_env, visualize)
     elif args.planner == 'dfs':
         planner = DepthFirstPlanner(planning_env, visualize)
+    elif args.planner == 'rrt':
+        planner = RRTPlanner(planning_env, visualize)
     elif args.planner == 'hrrt':
         planner = HeuristicRRTPlanner(planning_env, visualize)
     else:

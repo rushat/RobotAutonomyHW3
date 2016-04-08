@@ -50,8 +50,8 @@ class DiscreteEnvironment(object):
         # to a grid coordinate in discrete space
         #
         coord = [0] * self.dimension
-       	coord = numpy.floor((config - self.lower_limits)/self.resolution)
-       	return coord
+        coord = numpy.floor((numpy.array(config) - numpy.array(self.lower_limits))/self.resolution)
+        return coord
 
     def GridCoordToConfiguration(self, coord): #Done
         

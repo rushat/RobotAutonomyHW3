@@ -1,9 +1,8 @@
 import numpy
-import time
-import random
 from RRTTree import RRTTree
+import time
 
-class HeuristicRRTPlanner(object):
+class RRTPlanner(object):
 
     def __init__(self, planning_env, visualize):
         self.planning_env = planning_env
@@ -11,11 +10,10 @@ class HeuristicRRTPlanner(object):
         
 
     def Plan(self, start_config, goal_config, epsilon = 0.001):
-
+        
         plan = []
         dist = []
         debug =False
-        maxCost = 0
 
         startNode = self.planning_env.discrete_env.ConfigurationToNodeId(start_config)
         goalNode = self.planning_env.discrete_env.ConfigurationToNodeId(goal_config)
@@ -27,46 +25,24 @@ class HeuristicRRTPlanner(object):
         plan.append(start_config)
 
         start = time.time()
-        i = 1
+        i = 0
         far = True
         while far:
             if i%5 == 0:
                 randNode = goalNode
                 if debug: print "rand is goal"
-                nearID, nearNode= tree.GetNearestVertex(randNode)
             else:
                 if debug: print "rand is rand"
-                while True:
-                    randNode = self.planning_env.GenerateRandomNode()
-                    nearID, nearNode= tree.GetNearestVertex(randNode)
-
-                    nearCost = self.planning_env.ComputeDistance(startNode,nearNode)
-                    optCost = self.planning_env.ComputeHeuristicCost(nearNode, goalNode)
-
-                    quality = 1-((nearCost-optCost)/(maxCost - optCost))
-                    r = round(random.uniform(0, 2), 3) # 3 decimals between 0 and 2
-                    if debug: print ("nearCost: " + str(nearCost) + ", optCost: " + str(optCost))
-                    if debug: print ("quality: " + str(quality) + ", r: " + str(r))
-
-                    if r > quality:
-                        break;
-
+                randNode = self.planning_env.GenerateRandomNode()
             if debug: print ("i: " + str(i))
             if debug: print ("attempt node: " + str(randNode))
             i+=1
-
+            nearID, nearNode= tree.GetNearestVertex(randNode)
             if debug: print ("nearNode " + str(nearNode))
             if debug: print ("randNode " + str(randNode))
-
-
             newNode = self.planning_env.Extend(nearNode, randNode)
-
             if newNode != None:
                 if debug: print ("Found new node:" + str(newNode))
-                if debug: print ("max cost:" + str(maxCost))
-                newCost = self.planning_env.ComputeDistance(startNode,newNode)
-                maxCost = max(maxCost, newCost)
-                if debug: print ("new cost:" + str(newCost) + ", max cost:" + str(maxCost))
                 addedID = tree.AddVertex(newNode)
                 tree.AddEdge(nearID, addedID)
                 dist.append(self.planning_env.ComputeDistance(nearNode, newNode))
@@ -99,5 +75,5 @@ class HeuristicRRTPlanner(object):
         print ("total dist: " + str(sum(dist)))
         print ("time: " + str(time.time() - start))
         print ("number of vertices: " + str(len(plan)))
-        
+
         return plan

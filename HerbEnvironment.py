@@ -1,5 +1,6 @@
 import numpy
 from DiscreteEnvironment import DiscreteEnvironment
+import random
 class HerbEnvironment(object):
     
     def __init__(self, herb, resolution):
@@ -117,3 +118,66 @@ class HerbEnvironment(object):
             return True
         else:
             return False 
+    def Extend(self, start_node, end_node):
+        #
+        # TODO: Implement a function which attempts to extend from
+        #   a start configuration to a goal configuration
+        #
+
+        numPartitions = 10
+        start_config = self.discrete_env.NodeIdToConfiguration(start_node)
+        end_config = self.discrete_env.NodeIdToConfiguration(end_node)
+
+        length = len(start_config)
+        checkVals = [0] * length
+        checkVals = numpy.copy(start_config)
+        deltas = [0] * length
+        indices = self.robot.GetActiveDOFIndices()
+
+        for i in range(0,length):
+            deltas[i] = (end_config[i]-start_config[i])/numPartitions
+
+        tempTrans = self.robot.GetActiveDOFValues()
+
+        for k in range(1,numPartitions):
+
+            for i in range(0,length):
+                checkVals[i]+=deltas[i]
+                self.robot.SetDOFValues([checkVals[i]],[indices[i]])
+
+            if self.robot.CheckSelfCollision() == True or self.robot.GetEnv().CheckCollision(self.robot, self.table) == True:
+                for i in range(0,length):
+                    checkVals[i]-=deltas[i]
+
+                k = numPartitions+1
+
+                if (checkVals==start_config).all():
+                    return None
+                else:
+                    return  self.discrete_env.ConfigurationToNodeId(checkVals)
+        return self.discrete_env.ConfigurationToNodeId(end_config)
+
+
+    def GenerateRandomNode(self):
+        #global table
+        config = [0] * len(self.robot.GetActiveDOFIndices())
+
+        #
+        # TODO: Generate and return a random configuration
+        #
+
+        lower_limits, upper_limits = self.robot.GetActiveDOFLimits()
+        randDOF = [0] * len(self.robot.GetActiveDOFIndices())
+        found = False
+        tempDOF = self.robot.GetActiveDOFValues()
+        indices = self.robot.GetActiveDOFIndices()
+        while found == False:
+            for i in range(0,len(config)):
+                randDOF[i]=round(random.uniform(lower_limits[i], upper_limits[i]),3)
+                self.robot.SetDOFValues([randDOF[i]],[indices[i]])
+            if self.robot.CheckSelfCollision() == False & self.robot.GetEnv().CheckCollision(self.robot, self.table) == False:
+                found = True
+                config = randDOF
+            for i in range(0,len(config)):
+                self.robot.SetDOFValues([tempDOF[i]],[indices[i]])
+        return self.discrete_env.ConfigurationToNodeId(numpy.array(config))
